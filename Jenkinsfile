@@ -1,34 +1,50 @@
 pipeline {
+    agent any
+          stages {
+              stage('clone project') {
+                                    steps {
+                      git branch:'master',
+                      url:'https://github.com/sivalakkireddy9/demo1'                                    
+                                             }
+                                    }
+              stage('clean') {
+                               steps {
+                                    sh 'mvn clean'
+                                    }
+                            }
 
-	agent any
+               stage('compile') {
+                            steps {
+                                 sh 'mvn compile'
+                                 }
+                               }
 
-	
-	tools {
-  maven 'm360'
-}
-	
-	parameters {
-  string defaultValue: 'adi', name: 'name', trim: true
-}
-	stages {
-	  stage('build') {
-		steps {
-		  sh 'mvn install -DskipTests'
-		}
-	  }
+                stage('test') {
+                               steps {
+                                  sh 'mvn test'
+                                    }
+                            }
 
-	  stage('test') {
-		  steps {
-				sh 'echo new'
-			}
-		 post {
-			 always{
-				archiveArtifacts artifacts: 'target/**.jar', followSymlinks: false
-			
-			 }
-			}
-	  }
-		
-}
-
-}
+                stage('build') {
+                                steps {
+                                    sh 'mvn clean install'
+                                    }
+                            }
+          }        
+        post {
+        success {
+            emailext(
+                subject: "Build Success: ${currentBuild.fullDisplayName}",
+                body: "The build ${env.BUILD_URL} was successful!",
+                to: "sivalakkireddy999@gmail.com"
+            )
+        }
+        failure {
+            emailext(
+                subject: "Build Failed: ${currentBuild.fullDisplayName}",
+                body: "The build ${env.BUILD_URL} failed. Please check.",
+                to: "sivalakkireddy999@gmail.com"
+            )
+        }
+     }
+   }
